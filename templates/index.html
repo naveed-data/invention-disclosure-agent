@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prior-Art Research Agent</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #121b2e;
+    --panel-2: #17233b;
+    --border-c: #2a3852;
+    --text: #e7ecf5;
+    --muted: #8ea0bd;
+    --accent: #5b8dee;
+    --accent-2: #7ee0c3;
+    --high: #4fd18b;
+    --medium: #f0c25e;
+    --low: #ef9a6b;
+    --none: #7f8ba3;
+    --danger: #ef6b6b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: radial-gradient(1200px 600px at 10% -10%, #16233d 0%, var(--bg) 55%);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    padding: 28px clamp(16px, 4vw, 48px) 18px;
+    border-bottom: 1px solid var(--border-c);
+  }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+    letter-spacing: 0.2px;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(280px, 380px) 1fr;
+    gap: 20px;
+    padding: 20px clamp(16px, 4vw, 48px) 48px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border-c);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .card + .card { margin-top: 16px; }
+  label {
+    display: block;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  select, textarea {
+    width: 100%;
+    background: var(--panel-2);
+    border: 1px solid var(--border-c);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 0.92rem;
+    font-family: inherit;
+  }
+  textarea {
+    min-height: 220px;
+    resize: vertical;
+    line-height: 1.45;
+    margin-top: 4px;
+  }
+  select { cursor: pointer; }
+  .field { margin-bottom: 16px; }
+  button#runBtn {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), #3f6fd6);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s ease;
+  }
+  button#runBtn:disabled { opacity: 0.55; cursor: not-allowed; }
+  #status {
+    margin-top: 12px;
+    font-size: 0.85rem;
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+  .spinner {
+    display: inline-block;
+    width: 13px; height: 13px;
+    border: 2px solid var(--border-c);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: -2px;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #results { display: none; }
+  #results.show { display: block; }
+
+  .extraction-head { display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: baseline; }
+  .extraction-head h2 { margin: 0; font-size: 1.15rem; }
+  .domain-pill {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--panel-2);
+    border: 1px solid var(--border-c);
+    color: var(--accent-2);
+  }
+  .keywords { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .kw {
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--panel-2);
+    border: 1px solid var(--border-c);
+    border-radius: 999px;
+    padding: 3px 10px;
+  }
+
+  .summary-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .stat {
+    background: var(--panel-2);
+    border: 1px solid var(--border-c);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+  .stat b { color: var(--text); font-size: 0.95rem; }
+
+  .claim-card {
+    border: 1px solid var(--border-c);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 14px;
+    background: var(--panel-2);
+  }
+  .claim-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .claim-text { font-weight: 600; font-size: 0.98rem; margin: 0 0 4px; }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge.high { background: rgba(79,209,139,0.15); color: var(--high); border: 1px solid rgba(79,209,139,0.4); }
+  .badge.medium { background: rgba(240,194,94,0.15); color: var(--medium); border: 1px solid rgba(240,194,94,0.4); }
+  .badge.low { background: rgba(239,154,107,0.15); color: var(--low); border: 1px solid rgba(239,154,107,0.4); }
+  .badge.none { background: rgba(127,139,163,0.15); color: var(--none); border: 1px solid rgba(127,139,163,0.4); }
+
+  .match {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--border-c);
+    background: rgba(255,255,255,0.02);
+    border-radius: 6px;
+  }
+  .match .src {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--accent-2);
+    letter-spacing: 0.05em;
+    margin-right: 8px;
+  }
+  .match a { color: var(--accent); text-decoration: none; word-break: break-all; }
+  .match a:hover { text-decoration: underline; }
+  .match .reasoning { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+  .no-match { color: var(--muted); font-size: 0.88rem; margin-top: 8px; font-style: italic; }
+  .conclusion { margin-top: 10px; font-size: 0.88rem; color: var(--muted); }
+  .conclusion b { color: var(--text); }
+
+  details#logDetails { margin-top: 20px; }
+  summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--muted);
+    padding: 6px 0;
+  }
+  pre#logText {
+    background: #060a13;
+    border: 1px solid var(--border-c);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    max-height: 420px;
+    overflow-y: auto;
+    color: #b9c6dd;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .log-path { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+  .error-box {
+    border: 1px solid rgba(239,107,107,0.4);
+    background: rgba(239,107,107,0.08);
+    color: var(--danger);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.88rem;
+  }
+  .empty-state { color: var(--muted); font-size: 0.9rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Invention Disclosure Prior-Art Research Agent</h1>
+  <p>Two-agent pipeline: Extraction Agent (no tools) → Prior-Art Research Agent (agentic tool-calling loop over Semantic Scholar, PubMed, USPTO patents)</p>
+</header>
+
+<div class="layout">
+  <div>
+    <div class="card">
+      <div class="field">
+        <label for="sampleSelect">Load a sample disclosure</label>
+        <select id="sampleSelect">
+          <option value="">— custom / paste your own —</option>
+          {% for s in samples %}
+          <option value="{{ loop.index0 }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="disclosureText">Disclosure text</label>
+        <textarea id="disclosureText" placeholder="Paste a raw invention disclosure here..."></textarea>
+      </div>
+      <button id="runBtn">Run pipeline</button>
+      <div id="status"></div>
+    </div>
+  </div>
+
+  <div>
+    <div id="emptyState" class="card empty-state">
+      Run the pipeline to see the extracted claims, cited prior-art matches, and the full observability log here.
+    </div>
+
+    <div id="errorBox" class="card error-box" style="display:none;"></div>
+
+    <div id="results">
+      <div class="card">
+        <div class="extraction-head">
+          <h2 id="extTitle"></h2>
+          <span class="domain-pill" id="extDomain"></span>
+        </div>
+        <div class="keywords" id="extKeywords"></div>
+        <div class="summary-bar" id="summaryBar"></div>
+      </div>
+
+      <div class="card">
+        <div id="claims"></div>
+      </div>
+
+      <div class="card">
+        <details id="logDetails">
+          <summary>Run log (observability trace — LLM calls, tool calls, decisions, citation checks)</summary>
+          <pre id="logText"></pre>
+          <div class="log-path" id="logPath"></div>
+        </details>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SAMPLES = {{ samples | tojson }};
+const sampleSelect = document.getElementById('sampleSelect');
+const disclosureText = document.getElementById('disclosureText');
+const runBtn = document.getElementById('runBtn');
+const statusEl = document.getElementById('status');
+const emptyState = document.getElementById('emptyState');
+const errorBox = document.getElementById('errorBox');
+const results = document.getElementById('results');
+
+sampleSelect.addEventListener('change', () => {
+  const idx = sampleSelect.value;
+  disclosureText.value = idx === '' ? '' : SAMPLES[parseInt(idx, 10)].text;
+});
+
+function badgeClass(conf) {
+  return ['high', 'medium', 'low', 'none'].includes(conf) ? conf : 'none';
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function render(data) {
+  const ext = data.extraction;
+  document.getElementById('extTitle').textContent = ext.title;
+  document.getElementById('extDomain').textContent = ext.domain;
+
+  const kwWrap = document.getElementById('extKeywords');
+  kwWrap.innerHTML = '';
+  ext.keywords.forEach(k => {
+    const span = document.createElement('span');
+    span.className = 'kw';
+    span.textContent = k;
+    kwWrap.appendChild(span);
+  });
+
+  const s = data.summary;
+  document.getElementById('summaryBar').innerHTML = `
+    <div class="stat"><b>${s.llm_calls}</b> LLM calls</div>
+    <div class="stat"><b>${s.tool_calls}</b> tool calls</div>
+    <div class="stat"><b>~${s.approx_tokens}</b> tokens</div>
+    <div class="stat"><b>${s.runtime_seconds}s</b> runtime</div>
+    <div class="stat"><b>${s.citations_verified}</b> citations verified</div>
+    <div class="stat"><b>${s.citations_stripped}</b> stripped</div>
+  `;
+
+  const claimsWrap = document.getElementById('claims');
+  claimsWrap.innerHTML = '';
+  data.report.claims.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'claim-card';
+    let matchesHtml = '';
+    if (c.matches.length === 0) {
+      matchesHtml = '<div class="no-match">No verified matches found.</div>';
+    } else {
+      matchesHtml = c.matches.map(m => `
+        <div class="match">
+          <span class="src">${escapeHtml(m.source_type)}</span>
+          <strong>${escapeHtml(m.title)}</strong>
+          <span class="badge ${badgeClass(m.relevance)}" style="margin-left:8px;">${escapeHtml(m.relevance)}</span>
+          <div><a href="${escapeHtml(m.id_or_url)}" target="_blank" rel="noopener">${escapeHtml(m.id_or_url)}</a></div>
+          <div class="reasoning">${escapeHtml(m.reasoning)}</div>
+        </div>
+      `).join('');
+    }
+    card.innerHTML = `
+      <div class="claim-top">
+        <p class="claim-text">Claim ${i + 1}: ${escapeHtml(c.claim)}</p>
+        <span class="badge ${badgeClass(c.confidence)}">${escapeHtml(c.confidence)}</span>
+      </div>
+      ${matchesHtml}
+      <div class="conclusion"><b>Conclusion:</b> ${escapeHtml(c.conclusion)}</div>
+    `;
+    claimsWrap.appendChild(card);
+  });
+
+  document.getElementById('logText').textContent = data.log;
+  document.getElementById('logPath').textContent = data.log_path;
+
+  emptyState.style.display = 'none';
+  errorBox.style.display = 'none';
+  results.classList.add('show');
+}
+
+runBtn.addEventListener('click', async () => {
+  const text = disclosureText.value.trim();
+  if (!text) {
+    statusEl.textContent = 'Paste or select a disclosure first.';
+    return;
+  }
+  runBtn.disabled = true;
+  statusEl.innerHTML = '<span class="spinner"></span> Running extraction + research agents (this calls real LLMs and real search APIs — usually 10-60s)...';
+  errorBox.style.display = 'none';
+
+  try {
+    const resp = await fetch('/api/run', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({disclosure_text: text}),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      errorBox.style.display = 'block';
+      errorBox.textContent = data.error || 'Something went wrong.';
+      results.classList.remove('show');
+      statusEl.textContent = '';
+      return;
+    }
+    statusEl.textContent = 'Done.';
+    render(data);
+  } catch (e) {
+    errorBox.style.display = 'block';
+    errorBox.textContent = 'Request failed: ' + e;
+    statusEl.textContent = '';
+  } finally {
+    runBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>

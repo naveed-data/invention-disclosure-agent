@@ -1,0 +1,5 @@
+openai==3.11.0
+pydantic==2.13.5
+requests==2.34.2
+python-dotenv==1.2.3
+langfuse==4.15.2

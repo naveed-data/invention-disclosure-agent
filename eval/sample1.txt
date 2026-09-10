@@ -1,0 +1,3 @@
+Our lab has developed a CRISPR-Cas9-based gene editing approach to correct the single point mutation in the HBB gene that causes sickle cell disease. Guide RNAs are designed to direct Cas9 to the beta-globin locus in patient-derived hematopoietic stem cells, which are edited ex vivo and then re-infused into the patient after myeloablative conditioning.
+
+The approach uses a ribonucleoprotein (RNP) delivery format rather than viral delivery, which we believe reduces off-target integration risk compared to lentiviral gene addition therapies. We are seeking to understand whether this specific combination of ex vivo CRISPR-Cas9 RNP editing of HBB in autologous HSCs for sickle cell disease has already been disclosed or patented.

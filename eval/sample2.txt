@@ -1,0 +1,3 @@
+We have developed a lipid nanoparticle (LNP) formulation for delivering nucleoside-modified mRNA to hepatocytes and immune cells following intramuscular injection, intended for use as a vaccine platform against emerging infectious pathogens. The LNP consists of an ionizable cationic lipid, a PEGylated lipid, cholesterol, and a helper phospholipid, encapsulating mRNA encoding a viral surface antigen.
+
+The mRNA incorporates modified nucleosides to reduce innate immune activation and improve translational efficiency in vivo. We would like to know whether this general approach -- ionizable-lipid LNP encapsulation of nucleoside-modified mRNA encoding a viral antigen for prophylactic vaccination -- is already covered by existing patents or published literature.
